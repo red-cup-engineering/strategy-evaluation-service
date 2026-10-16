@@ -8,13 +8,14 @@
   "files": [
     "src/"
   ],
-  "version": "0.1.6",
+  "version": "0.1.7",
   "dependencies": {
-    "@red-cup-engineering/computer-code-engineering-services-section": "0.1.0",
-    "@red-cup-engineering/computer-content-address-engineering-services-section": "0.2.0"
+    "@red-cup-engineering/computer-content-address-engineering-services-section": "0.2.0",
+    "@red-cup-engineering/computer-data-engineering-services-section": "0.2.0",
+    "@red-cup-engineering/computer-code-engineering-services-section": "0.1.2"
   },
   "devDependencies": {
-    "@red-cup-engineering/content-addressed-dataset-store-service": "0.2.3"
+    "@red-cup-engineering/content-addressed-dataset-store-service": "0.2.4"
   },
   "scripts": {
     "check": "node --check src/*.mjs",

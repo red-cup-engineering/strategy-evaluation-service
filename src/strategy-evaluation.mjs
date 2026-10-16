@@ -2,7 +2,7 @@ import { sign, verify } from "node:crypto";
 import {
   EMPTY_WITNESS_ROOT,
   identifyJsonSemanticContent,
-} from "@red-cup-engineering/computer-content-address-engineering-services-section/semantic-content-identity";
+} from "@red-cup-engineering/computer-data-engineering-services-section/semiotic-expression-notation/semantic-content-identity";
 
 // Signed-record convention: the subject id is the typed v2 semantic identity
 // of the admitted JSON record excluding only top-level id and signature.
