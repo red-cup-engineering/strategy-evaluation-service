@@ -9,6 +9,11 @@
     "src/"
   ],
   "version": "0.1.7",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/red-cup-engineering/financial-engineering-services-section.git",
+    "directory": "services/strategy-evaluation-services-section/services/strategy-evaluation-service"
+  },
   "dependencies": {
     "@red-cup-engineering/computer-content-address-engineering-services-section": "0.2.0",
     "@red-cup-engineering/computer-data-engineering-services-section": "0.2.0",
