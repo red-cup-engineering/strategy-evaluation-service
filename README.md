@@ -29,11 +29,14 @@ study. It does not establish historical execution prices.
 
 `evaluate` reports separate training and holdout results, including option P&L,
 the strategy return (including the underlying for a covered call, or measured
-on premium for a long straddle), drawdown across nonoverlapping portfolios,
+on premium plus opening fees for a long straddle), drawdown across nonoverlapping portfolios,
 rally outcomes, variance gaps, and moving-block intervals. Fees, hedge bands,
-quote ratios and entry cadence are configurable. `--har` forecasts variance
-from daily, weekly and monthly trailing realized variance. Training excludes
-settlements crossing the split. Combine it with `--iv-variance-ratio` to select
+quote ratios and entry cadence are configurable. Opening fees use the entry
+spot and trade premium. Delivery fees use the expiry spot and intrinsic value.
+Set `--delivery-fee 0` for exempt daily products. [Deribit fee schedule](https://support.deribit.com/hc/en-us/articles/25944746248989-Fees). `--har` forecasts variance
+from daily, weekly and monthly trailing realized variance. Training metrics use in-sample fitted
+predictions. The holdout uses fixed coefficients fitted only on settlements
+completed before the split. Combine it with `--iv-variance-ratio` to select
 expensive sales or cheap straddles, `--forecast-strike` to set short-option
 strikes from forecast IV, and `--filters` with repeated UTC `--event` values to
 exclude event windows, volatility spikes and adverse momentum. Delta hedges use

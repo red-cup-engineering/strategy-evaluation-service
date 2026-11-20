@@ -6,7 +6,7 @@ import unittest
 from datetime import datetime, timezone
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src/options"))
-from market_data import HOUR, YEAR, calibrate_chain, parse_bars, price_history
+from market_data import HOUR, calibrate_chain, parse_bars, price_history
 from volatility import Contract, fit_har, price_delta, sample_trades, settlement, summarize
 
 
@@ -25,7 +25,18 @@ class VolatilityTests(unittest.TestCase):
         free = settlement(bars, 0, Contract("hedged-put", 1, hedge_fee=0))[0]
         self.assertLess(short, free)
         straddle = settlement(bars, 0, Contract("long-straddle", 1))
-        self.assertAlmostEqual(straddle[0] / straddle[2], straddle[1])
+        self.assertGreater(straddle[1], 0.)
+        flat = [(0, 100., .32), (24 * HOUR, 100., .32)]
+        self.assertEqual(settlement(flat, 0, Contract("long-straddle", 1))[1], -1.)
+
+    def test_delivery_is_capped_by_settlement_value(self):
+        years = 1 / 365
+        # The 50-delta call expires just inside the money.
+        strike = 100 * math.exp(.32 ** 2 * years / 2)
+        bars = [(0, 100., .32), (24 * HOUR, strike + .001, .32)]
+        charged = settlement(bars, 0, Contract("covered-call", 1, delta=.5))[0]
+        exempt = settlement(bars, 0, Contract("covered-call", 1, delta=.5, delivery_fee=0))[0]
+        self.assertAlmostEqual(exempt-charged, .125 * .001 / 100)
 
     def test_no_holdout_leakage(self):
         bars = [(i*HOUR, 100*math.exp(.03*math.sin(i/22)+.01*math.cos(i/7)), .31) for i in range(1600)]
@@ -58,4 +69,9 @@ class VolatilityTests(unittest.TestCase):
         self.assertEqual(result["days"], 7.)
         self.assertAlmostEqual(result["iv_multiplier"], 1.2)
         self.assertAlmostEqual(result["bid_to_mark"], .8)
+        above_mark = dict(quote, bid_price=.051, ask_price=.052)
+        quote_ratios = calibrate_chain([above_mark], .4, now, 7, "C", .5, .04)
+        Contract("covered-call", 7, bid=quote_ratios["bid_to_mark"], ask=quote_ratios["ask_to_mark"])
+        with self.assertRaises(ValueError):
+            calibrate_chain([quote], .4, now, math.nan, "C", .5, .04)
         self.assertIsNone(calibrate_chain([quote], .40, now, 7, "P", .25, .04))

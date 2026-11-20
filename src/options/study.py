@@ -87,6 +87,9 @@ def run(argv=None):
                                    ratio=args.iv_variance_ratio, filters=args.filters, events=args.event)
             result = {name: summarize([r for r in trades if r[1] == holdout], args.bars, args.stride)
                       for name, holdout in (("train", False), ("holdout", True))}
+            if args.har:
+                result["forecast_evaluation"] = {"train": "in-sample fitted predictions",
+                                                 "holdout": "fixed model fitted before holdout"}
             result["pricing"] = "modelled on implied volatility"
         else:
             if args.strategy == "long-straddle":

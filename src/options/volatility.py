@@ -38,8 +38,8 @@ class Contract:
             raise ValueError("unknown option strategy")
         if self.bars < 1 or not 0 < self.delta < 1 or self.multiplier <= 0:
             raise ValueError("invalid tenor, delta or volatility multiplier")
-        if not 0 < self.bid <= 1 <= self.ask:
-            raise ValueError("quote ratios must bracket the mark")
+        if not 0 < self.bid <= self.ask:
+            raise ValueError("quote ratios must be positive and bid must not exceed ask")
         if not all(math.isfinite(x) and 0 <= x <= 1 for x in
                    (self.hedge_fee, self.open_fee, self.delivery_fee, self.fee_cap, self.hedge_band)):
             raise ValueError("fees and hedge band must be fractions between zero and one")
@@ -54,17 +54,20 @@ def settlement(bars, i, contract, forecast_strike_iv=None):
     years = (end - start) / YEAR
     iv = vol * contract.multiplier
     if contract.strategy == "long-straddle":
-        premium = fees = 0.
+        premium = entry_fees = delivery_fees = 0.
         for side in ("call", "put"):
             mark, _ = price_delta(spot, spot, iv, years, side)
             cost = mark * contract.ask
             intrinsic = max(0., final - spot if side == "call" else spot - final)
             premium += cost
-            fees += min(contract.open_fee * spot, contract.fee_cap * cost)
+            entry_fees += min(contract.open_fee * spot, contract.fee_cap * cost)
             if intrinsic:
-                fees += min(contract.delivery_fee * spot, contract.fee_cap * cost)
-        pnl = abs(final - spot) - premium - fees
-        return pnl / spot, pnl / premium, premium / spot, final / spot - 1
+                delivery_fees += min(contract.delivery_fee * final, contract.fee_cap * intrinsic)
+        outlay = premium + entry_fees
+        if outlay <= 0:
+            raise ValueError("modelled straddle price is below numerical precision")
+        pnl = abs(final - spot) - outlay - delivery_fees
+        return pnl / spot, pnl / outlay, premium / spot, final / spot - 1
     side = "call" if contract.strategy.endswith("call") else "put"
     sign = 1 if side == "call" else -1
     deviation = (forecast_strike_iv or iv) * math.sqrt(years)
@@ -74,7 +77,7 @@ def settlement(bars, i, contract, forecast_strike_iv=None):
     payoff = max(sign * (final - strike), 0.)
     fees = min(contract.open_fee * spot, contract.fee_cap * premium)
     if payoff:
-        fees += min(contract.delivery_fee * spot, contract.fee_cap * premium)
+        fees += min(contract.delivery_fee * final, contract.fee_cap * payoff)
     hedge_pnl = 0.
     if contract.strategy.startswith("hedged"):
         position = 0.

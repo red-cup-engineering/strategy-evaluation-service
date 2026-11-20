@@ -54,7 +54,8 @@ def price_history(currency, start, end, hours, request=public_data):
 
 def calibrate_chain(quotes, volatility, as_of, days, option, delta, tolerance):
     """Choose a two-sided quote near the target expiry and absolute delta."""
-    if volatility <= 0 or days <= 0 or not 0 < delta < 1 or tolerance < 0:
+    if (not all(map(math.isfinite, (volatility, days, delta, tolerance))) or
+            volatility <= 0 or days <= 0 or not 0 < delta < 1 or tolerance < 0):
         raise ValueError("invalid chain calibration inputs")
     candidates = []
     for row in quotes:
