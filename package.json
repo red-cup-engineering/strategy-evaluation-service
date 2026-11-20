@@ -28,5 +28,8 @@
     "type": "individual",
     "url": "https://github.com/561-group/.github/blob/main/TIPS.md"
   },
-  "packageManager": "pnpm@11.19.0"
+  "packageManager": "pnpm@11.19.0",
+  "bin": {
+    "option-volatility-study": "src/options/study.py"
+  }
 }
